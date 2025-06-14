@@ -7,6 +7,7 @@
 
 import Foundation
 import HealthKit
+import SwiftData
 
 class HealthKitManager {
     
@@ -72,6 +73,57 @@ class HealthKitManager {
             if success {
                 print("Kraft-Workout erfolgreich in HealthKit gespeichert!")
             }
+        }
+    }
+
+    /// Importiert alle Workouts aus HealthKit und speichert sie in SwiftData.
+    @MainActor
+    func importWorkoutsFromHealthKit(modelContext: ModelContext, completion: @escaping (Int, Error?) -> Void) {
+        let workoutType = HKObjectType.workoutType()
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
+        let query = HKSampleQuery(sampleType: workoutType, predicate: nil, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
+            
+            guard let workouts = samples as? [HKWorkout], error == nil else {
+                completion(0, error)
+                return
+            }
+            
+            var importedCount = 0
+            for workout in workouts {
+                // Konvertiere HKWorkout in deine App-Modelle
+                self.convertAndStore(hkWorkout: workout, in: modelContext)
+                importedCount += 1
+            }
+            
+            completion(importedCount, nil)
+        }
+        healthStore.execute(query)
+    }
+
+    /// Konvertiert ein einzelnes HKWorkout und speichert es.
+    @MainActor
+    private func convertAndStore(hkWorkout: HKWorkout, in modelContext: ModelContext) {
+        switch hkWorkout.workoutActivityType {
+        case .running, .cycling:
+            let activityType: CardioSession.ActivityType = hkWorkout.workoutActivityType == .running ? .running : .cycling
+            let newSession = CardioSession(
+                type: activityType,
+                date: hkWorkout.startDate,
+                duration: hkWorkout.duration
+            )
+            modelContext.insert(newSession)
+
+        case .traditionalStrengthTraining:
+            let newWorkout = Workout(
+                name: "Importiertes Krafttraining", // HealthKit liefert keine Übungsdetails
+                date: hkWorkout.startDate,
+                exercises: [] // Übungen können nicht aus HealthKit importiert werden
+            )
+            modelContext.insert(newWorkout)
+            
+        default:
+            // Andere Workout-Typen könntest du hier ebenfalls behandeln
+            print("Nicht unterstützter Workout-Typ: \(hkWorkout.workoutActivityType.rawValue)")
         }
     }
 }

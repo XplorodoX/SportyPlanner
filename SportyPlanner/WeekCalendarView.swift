@@ -19,48 +19,71 @@ struct WeekCalendarView: View {
 
     var body: some View {
         NavigationStack {
-            VStack {
-                // Wochen-Navigation
-                HStack {
-                    Button(action: { withAnimation { weekOffset -= 1 } }) {
-                        Image(systemName: "chevron.left.circle.fill")
+            VStack(spacing: 0) {
+                // Wochen-Navigation und Kalendertage
+                VStack {
+                    HStack {
+                        Button(action: { withAnimation(.easeInOut) { weekOffset -= 1 } }) {
+                            Image(systemName: "chevron.left.circle.fill")
+                        }
+                        Spacer()
+                        Text(weekHeader)
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .transition(.opacity.combined(with: .scale))
+                        Spacer()
+                        Button(action: { withAnimation(.easeInOut) { weekOffset += 1 } }) {
+                            Image(systemName: "chevron.right.circle.fill")
+                        }
                     }
-                    Spacer()
-                    Text(weekHeader)
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    Spacer()
-                    Button(action: { withAnimation { weekOffset += 1 } }) {
-                        Image(systemName: "chevron.right.circle.fill")
-                    }
-                }
-                .padding()
-                .font(.title2)
+                    .font(.title2)
+                    .foregroundStyle(Color.accentColor)
+                    .padding([.horizontal, .top])
 
-                // Kalendertage
-                HStack(spacing: 4) {
-                    ForEach(currentWeek, id: \.self) { date in
-                        dayCell(for: date)
+                    HStack(spacing: 4) {
+                        ForEach(currentWeek, id: \.self) { date in
+                            dayCell(for: date)
+                        }
                     }
+                    .padding(.horizontal)
+                    .padding(.bottom, 10)
                 }
-                .padding(.horizontal)
+                .background(.bar)
 
                 // Aktivitätenliste
                 List {
-                    Section("Aktivitäten am \(selectedDate, format: .dateTime.day().month(.wide))") {
+                    Section {
                         let dailyWorkouts = workouts.filter { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }
                         let dailyCardio = cardioSessions.filter { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }
 
                         if dailyWorkouts.isEmpty && dailyCardio.isEmpty {
-                            ContentUnavailableView("Keine Pläne", systemImage: "calendar.badge.exclamationmark")
+                            ContentUnavailableView {
+                                Label("Keine Pläne für heute", systemImage: "calendar.badge.exclamationmark")
+                            } description: {
+                                Text("Füge ein neues Workout oder eine Cardio-Einheit hinzu.")
+                            }
                         } else {
                             ForEach(dailyWorkouts) { workout in
-                                Label("Workout: \(workout.name)", systemImage: "dumbbell.fill")
+                                Label {
+                                    Text(workout.name)
+                                        .fontWeight(.medium)
+                                } icon: {
+                                    Image(systemName: "dumbbell.fill")
+                                        .foregroundStyle(Color.accentColor)
+                                }
                             }
                             ForEach(dailyCardio) { session in
-                                Label("Cardio: \(session.type.rawValue.capitalized)", systemImage: "figure.run")
+                                Label {
+                                    Text(session.type.rawValue.capitalized)
+                                        .fontWeight(.medium)
+                                } icon: {
+                                    Image(systemName: "figure.run")
+                                        .foregroundStyle(Color.accentColor)
+                                }
                             }
                         }
+                    } header: {
+                        Text("Aktivitäten am \(selectedDate.formatted(.dateTime.day().month(.wide)))")
                     }
                 }
                 .listStyle(.insetGrouped)
@@ -96,33 +119,43 @@ struct WeekCalendarView: View {
     private var weekHeader: String {
         let firstDay = currentWeek.first ?? Date()
         let lastDay = currentWeek.last ?? Date()
-        return "\(firstDay.formatted(.dateTime.month().day())) - \(lastDay.formatted(.dateTime.month().day()))"
+        if Calendar.current.isDate(firstDay, equalTo: lastDay, toGranularity: .month) {
+             return "\(firstDay.formatted(.dateTime.month(.wide).year()))"
+        }
+        return "\(firstDay.formatted(.dateTime.month().day())) – \(lastDay.formatted(.dateTime.month().day()))"
     }
 
     @ViewBuilder
     private func dayCell(for date: Date) -> some View {
         let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
-        VStack {
-            Text(date, format: .dateTime.weekday(.short))
+        let activityExists = hasActivity(for: date)
+        
+        VStack(spacing: 8) {
+            Text(date.formatted(.dateTime.weekday(.short)))
                 .font(.caption)
-                .foregroundColor(isSelected ? .white : .secondary)
-            Text(date, format: .dateTime.day())
+                .fontWeight(.medium)
+                .foregroundStyle(isSelected ? Color.primary.opacity(0.9) : Color.secondary)
+            
+            Text(date.formatted(.dateTime.day()))
                 .fontWeight(isSelected ? .bold : .regular)
                 .foregroundStyle(isSelected ? .white : .primary)
-                .frame(width: 35, height: 35)
-                .background(
-                    ZStack {
-                        if isSelected {
-                            Circle().fill(Color.accentColor)
-                        } else if hasActivity(for: date) {
-                            Circle().stroke(Color.accentColor.opacity(0.5), lineWidth: 2)
-                        }
+                .frame(width: 40, height: 40)
+                .background {
+                    if isSelected {
+                        Circle()
+                            .fill(Color.accentColor.gradient)
+                            .shadow(radius: 3)
+                    } else if activityExists {
+                        Circle()
+                            .fill(.gray.opacity(0.2))
                     }
-                )
+                }
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .contentShape(Rectangle())
         .onTapGesture {
-            withAnimation(.spring) {
+            withAnimation(.snappy) {
                 selectedDate = date
             }
         }
@@ -134,6 +167,7 @@ struct WeekCalendarView: View {
                cardioSessions.contains { calendar.isDate($0.date, inSameDayAs: date) }
     }
 }
+
 
 extension Calendar {
     func datesOfWeek(containing date: Date) -> [Date] {

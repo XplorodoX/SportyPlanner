@@ -37,7 +37,7 @@ struct SettingsView: View {
         isImporting = true
         HealthKitManager.shared.requestAuthorization { [self] success, error in
             if success {
-                HealthKitManager.shared.importWorkoutsFromHealthKit { importedCount, importError in
+                HealthKitManager.shared.importWorkoutsFromHealthKit(modelContext: modelContext) { importedCount, importError in
                     DispatchQueue.main.async {
                         self.isImporting = false
                         if let importError = importError {
@@ -64,6 +64,3 @@ struct SettingsView: View {
     }
 }
 
-#Preview {
-    SettingsView()
-}

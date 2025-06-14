@@ -16,6 +16,9 @@ struct ContentView: View {
 
             CardioListView()
                 .tabItem { Label("Cardio", systemImage: "figure.run") }
+            
+            SettingsView()
+                .tabItem { Label("Einstellungen", systemImage: "gear") }
         }
         .onAppear(perform: setupInitialData)
     }
