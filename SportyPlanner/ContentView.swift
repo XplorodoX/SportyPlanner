@@ -20,6 +20,11 @@ struct ContentView: View {
 
             CardioListView()
                 .tabItem { Label("Cardio", systemImage: "figure.run") }
+
+            NavigationStack {
+                WeekCalendarView()
+            }
+                .tabItem { Label("Week", systemImage: "calendar") }
         }
         .onAppear {
             if try? modelContext.fetch(FetchDescriptor<Workout>()).isEmpty ?? true {
