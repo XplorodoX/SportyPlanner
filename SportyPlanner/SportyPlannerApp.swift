@@ -12,11 +12,12 @@ import SwiftData
 struct SportyPlannerApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            // Item.self wurde entfernt
             Workout.self,
             Exercise.self,
             CardioSession.self,
         ])
+        
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {

@@ -27,7 +27,7 @@ struct ContentView: View {
                 .tabItem { Label("Week", systemImage: "calendar") }
         }
         .onAppear {
-            if try? modelContext.fetch(FetchDescriptor<Workout>()).isEmpty ?? true {
+            if ((try? modelContext.fetch(FetchDescriptor<Workout>()).isEmpty ?? true) != nil) {
                 for workout in planner.generatePlan() {
                     modelContext.insert(workout)
                 }
@@ -36,9 +36,4 @@ struct ContentView: View {
     }
 
     // Old list manipulation is removed in favour of dedicated views.
-}
-
-#Preview {
-    ContentView()
-        .modelContainer(for: [Item.self, Workout.self, Exercise.self, CardioSession.self], inMemory: true)
 }
