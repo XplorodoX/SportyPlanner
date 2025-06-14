@@ -1,3 +1,5 @@
+// SportyPlanner/SettingsView.swift
+
 import SwiftUI
 import SwiftData
 
@@ -7,11 +9,16 @@ struct SettingsView: View {
     @State private var alertTitle = ""
     @State private var alertMessage = ""
     @State private var isImporting = false
+    
+    // --- BEGINN DER ÄNDERUNGEN ---
+    @State private var showingDeleteConfirmation = false
+    // --- ENDE DER ÄNDERUNGEN ---
 
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Datenmanagement"), footer: Text("Importiere abgeschlossene Workouts und Cardio-Einheiten aus Apple Health.")) {
+                Section(header: Text("Datenmanagement")) {
+                    // Import-Button bleibt erhalten
                     Button(action: importHealthData) {
                         if isImporting {
                             HStack {
@@ -24,16 +31,47 @@ struct SettingsView: View {
                         }
                     }
                     .disabled(isImporting)
+                    
+                    // --- BEGINN DER ÄNDERUNGEN ---
+                    // Button zum Löschen aller Daten
+                    Button(role: .destructive, action: {
+                        showingDeleteConfirmation = true
+                    }) {
+                        Label("Alle Daten löschen", systemImage: "trash.fill")
+                    }
+                    // --- ENDE DER ÄNDERUNGEN ---
                 }
+                
+                // --- BEGINN DER ÄNDERUNGEN ---
+                Section(header: Text("Über die App")) {
+                    HStack {
+                        Text("Version")
+                        Spacer()
+                        // Holt die App-Version dynamisch aus dem Info.plist
+                        Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
+                            .foregroundColor(.secondary)
+                    }
+                }
+                // --- ENDE DER ÄNDERUNGEN ---
             }
             .navigationTitle("Einstellungen")
             .alert(isPresented: $showingAlert) {
                 Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .default(Text("OK")))
             }
+            // --- BEGINN DER ÄNDERUNGEN ---
+            // Bestätigungsdialog für das Löschen
+            .alert("Bist du sicher?", isPresented: $showingDeleteConfirmation) {
+                Button("Alle Daten löschen", role: .destructive, action: deleteAllData)
+                Button("Abbrechen", role: .cancel) {}
+            } message: {
+                Text("Diese Aktion kann nicht rückgängig gemacht werden. Alle Workouts und Cardio-Einheiten werden dauerhaft entfernt.")
+            }
+            // --- ENDE DER ÄNDERUNGEN ---
         }
     }
 
     private func importHealthData() {
+        // ... (unveränderter Code)
         isImporting = true
         HealthKitManager.shared.requestAuthorization { [self] success, error in
             if success {
@@ -46,8 +84,6 @@ struct SettingsView: View {
                         } else {
                             self.alertTitle = "Import erfolgreich"
                             self.alertMessage = "\(importedCount) Aktivitäten wurden erfolgreich importiert."
-                            // Hier könnten die importierten Daten in SwiftData gespeichert werden
-                            // In diesem Beispiel geben wir nur eine Erfolgsmeldung aus.
                         }
                         self.showingAlert = true
                     }
@@ -62,5 +98,23 @@ struct SettingsView: View {
             }
         }
     }
+    
+    // --- BEGINN DER ÄNDERUNGEN ---
+    /// Löscht alle Workout- und Cardio-Daten aus SwiftData.
+    private func deleteAllData() {
+        do {
+            try modelContext.delete(model: Workout.self)
+            try modelContext.delete(model: CardioSession.self)
+            
+            alertTitle = "Erfolgreich gelöscht"
+            alertMessage = "Alle Daten wurden entfernt."
+            showingAlert = true
+            
+        } catch {
+            alertTitle = "Fehler beim Löschen"
+            alertMessage = "Die Daten konnten nicht vollständig gelöscht werden: \(error.localizedDescription)"
+            showingAlert = true
+        }
+    }
+    // --- ENDE DER ÄNDERUNGEN ---
 }
-

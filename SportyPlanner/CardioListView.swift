@@ -1,3 +1,5 @@
+// SportyPlanner/CardioListView.swift
+
 import SwiftUI
 import SwiftData
 
@@ -12,6 +14,8 @@ struct CardioListView: View {
                 ForEach(sessions) { session in
                     NavigationLink(destination: CardioDetailView(session: session)) {
                         HStack(spacing: 15) {
+                            // --- BEGINN DER ÄNDERUNGEN ---
+                            // Icon bleibt unverändert
                             Image(systemName: session.type == .running ? "figure.run" : "bicycle")
                                 .font(.title)
                                 .foregroundColor(.white)
@@ -19,17 +23,24 @@ struct CardioListView: View {
                                 .background(Color.accentColor.gradient)
                                 .clipShape(Circle())
                             
-                            VStack(alignment: .leading) {
-                                Text("\(session.type.rawValue.capitalized)")
+                            // Flexible Anordnung für Titel und Datum
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(session.type.rawValue.capitalized)
                                     .font(.headline)
+                                    .lineLimit(1) // Verhindert Umbruch bei sehr langen Namen
                                 Text(session.date, format: .dateTime.day().month().year())
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
-                            Spacer()
+                            
+                            Spacer() // Sorgt für flexible Breite
+                            
+                            // Dauer wird rechtsbündig angezeigt
                             Text(formattedDuration(session.duration))
                                 .font(.subheadline)
                                 .fontWeight(.medium)
+                                .foregroundColor(.secondary)
+                            // --- ENDE DER ÄNDERUNGEN ---
                         }
                         .padding(.vertical, 8)
                     }

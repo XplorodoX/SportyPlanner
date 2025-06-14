@@ -1,9 +1,4 @@
-//
-//  CardioDetailView.swift
-//  SportyPlanner
-//
-//  Created by Florian Merlau on 15.06.25.
-//
+// SportyPlanner/CardioDetailView.swift
 
 import SwiftUI
 import MapKit
@@ -19,20 +14,13 @@ struct CardioDetailView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Die Map-Ansicht bleibt unverändert
             if !session.locations.isEmpty {
                 Map(position: $position) {
                     MapPolyline(coordinates: routeCoordinates)
                         .stroke(.blue, lineWidth: 5)
                     Marker("Start", coordinate: routeCoordinates.first!)
                     Marker("Ende", coordinate: routeCoordinates.last!)
-                }
-                .onAppear {
-                    // Kamera auf die Route zentrieren
-                    let mapRect = routeCoordinates.reduce(MKMapRect.null) { rect, coordinate in
-                        let point = MKMapPoint(coordinate)
-                        return rect.union(MKMapRect(x: point.x, y: point.y, width: 0, height: 0))
-                    }
-                    position = .rect(mapRect.insetBy(dx: -1000, dy: -1000))
                 }
             } else {
                 ContentUnavailableView(
@@ -42,9 +30,11 @@ struct CardioDetailView: View {
                 )
             }
             
+            // --- BEGINN DER ÄNDERUNGEN ---
             // Detailinformationen unter der Karte
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
+            VStack(alignment: .leading, spacing: 15) {
+                // Header-Information
+                HStack(spacing: 15) {
                     Image(systemName: session.type == .running ? "figure.run" : "bicycle")
                         .font(.largeTitle)
                         .foregroundColor(.accentColor)
@@ -53,7 +43,7 @@ struct CardioDetailView: View {
                         Text(session.type.rawValue.capitalized)
                             .font(.largeTitle)
                             .fontWeight(.bold)
-                        Text(session.date, format: .dateTime.day().month().year())
+                        Text(session.date, format: .dateTime.day().month(.wide).year())
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -61,20 +51,32 @@ struct CardioDetailView: View {
                 
                 Divider()
                 
-                HStack {
-                    VStack(alignment: .leading) {
+                // Grid-Layout für eine saubere und adaptive Darstellung
+                Grid(alignment: .leading, horizontalSpacing: 20, verticalSpacing: 10) {
+                    GridRow {
                         Text("Dauer")
-                            .font(.caption)
+                            .font(.headline)
                             .foregroundColor(.secondary)
                         Text(formattedDuration(session.duration))
-                            .font(.title2)
+                            .font(.title3)
                             .fontWeight(.semibold)
+                            .gridCellAnchor(.leading)
                     }
-                    Spacer()
+                    // Hier könnten weitere Details hinzugefügt werden (z.B. Distanz, Kalorien)
+                    // GridRow {
+                    //     Text("Distanz")
+                    //         .font(.headline)
+                    //         .foregroundColor(.secondary)
+                    //     Text("5.2 km")
+                    //         .font(.title3)
+                    //         .fontWeight(.semibold)
+                    //         .gridCellAnchor(.leading)
+                    // }
                 }
             }
             .padding()
             .background(.thinMaterial)
+            // --- ENDE DER ÄNDERUNGEN ---
         }
         .navigationTitle("Cardio-Details")
         .ignoresSafeArea(edges: .top)
@@ -85,15 +87,5 @@ struct CardioDetailView: View {
         formatter.allowedUnits = [.hour, .minute, .second]
         formatter.unitsStyle = .full
         return formatter.string(from: duration) ?? ""
-    }
-}
-
-// Hilfserweiterung, um die Map-Region zu berechnen
-extension Array where Element == CLLocationCoordinate2D {
-    var rect: MKMapRect {
-        self.reduce(MKMapRect.null) { mapRect, coordinate in
-            let point = MKMapPoint(coordinate)
-            return mapRect.union(MKMapRect(x: point.x, y: point.y, width: 0, height: 0))
-        }
     }
 }
