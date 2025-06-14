@@ -10,8 +10,10 @@ import Testing
 
 struct SportyPlannerTests {
 
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+    @Test func plannerCreatesWorkout() async throws {
+        let planner = WorkoutPlanner()
+        let plan = planner.generatePlan()
+        #expect(plan.isEmpty == false)
     }
 
 }

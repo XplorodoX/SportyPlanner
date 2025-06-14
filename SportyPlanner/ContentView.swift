@@ -7,55 +7,33 @@
 
 import SwiftUI
 import SwiftData
+import MapKit
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    let planner = WorkoutPlanner()
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
+        TabView {
+            WorkoutListView()
+                .tabItem { Label("Workouts", systemImage: "dumbbell") }
+
+            CardioListView()
+                .tabItem { Label("Cardio", systemImage: "figure.run") }
+        }
+        .onAppear {
+            if try? modelContext.fetch(FetchDescriptor<Workout>()).isEmpty ?? true {
+                for workout in planner.generatePlan() {
+                    modelContext.insert(workout)
                 }
             }
-        } detail: {
-            Text("Select an item")
         }
     }
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
-    }
+    // Old list manipulation is removed in favour of dedicated views.
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: [Item.self, Workout.self, Exercise.self, CardioSession.self], inMemory: true)
 }

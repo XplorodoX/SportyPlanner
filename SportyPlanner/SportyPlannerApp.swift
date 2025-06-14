@@ -13,6 +13,9 @@ struct SportyPlannerApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,
+            Workout.self,
+            Exercise.self,
+            CardioSession.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
