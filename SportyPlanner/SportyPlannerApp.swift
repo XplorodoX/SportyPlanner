@@ -1,18 +1,13 @@
-//
-//  SportyPlannerApp.swift
-//  SportyPlanner
-//
-//  Created by Florian Merlau on 14.06.25.
-//
-
 import SwiftUI
 import SwiftData
 
 @main
 struct SportyPlannerApp: App {
+    // State, um den Zustand des Splash Screens zu steuern
+    @State private var showingSplash = true
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            // Item.self wurde entfernt
             Workout.self,
             Exercise.self,
             CardioSession.self,
@@ -29,7 +24,19 @@ struct SportyPlannerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if showingSplash {
+                SplashScreenView()
+                    .onAppear {
+                        // Nach 2.5 Sekunden zur Hauptansicht wechseln
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                            withAnimation {
+                                showingSplash = false
+                            }
+                        }
+                    }
+            } else {
+                ContentView()
+            }
         }
         .modelContainer(sharedModelContainer)
     }

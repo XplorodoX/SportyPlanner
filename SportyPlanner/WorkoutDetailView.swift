@@ -14,12 +14,16 @@ struct WorkoutDetailView: View {
         List {
             Section("Übungen") {
                 ForEach(workout.exercises) { exercise in
-                    VStack(alignment: .leading) {
-                        Text(exercise.name)
-                            .font(.headline)
-                        Text("\(exercise.sets) Sätze x \(exercise.reps) Wiederholungen")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                    HStack {
+                        Image(systemName: "figure.strengthtraining.traditional")
+                            .foregroundColor(.accentColor)
+                        VStack(alignment: .leading) {
+                            Text(exercise.name)
+                                .font(.headline)
+                            Text("\(exercise.sets) Sätze x \(exercise.reps) Wiederholungen")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
             }

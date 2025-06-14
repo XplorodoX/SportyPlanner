@@ -15,16 +15,16 @@ struct ContentView: View {
 
     var body: some View {
         TabView {
-            WorkoutListView()
-                .tabItem { Label("Workouts", systemImage: "dumbbell") }
-
-            CardioListView()
-                .tabItem { Label("Cardio", systemImage: "figure.run") }
-
             NavigationStack {
                 WeekCalendarView()
             }
-                .tabItem { Label("Week", systemImage: "calendar") }
+            .tabItem { Label("Woche", systemImage: "calendar") }
+
+            WorkoutListView()
+                .tabItem { Label("Workouts", systemImage: "dumbbell.fill") }
+
+            CardioListView()
+                .tabItem { Label("Cardio", systemImage: "figure.run") }
         }
         .onAppear {
             if ((try? modelContext.fetch(FetchDescriptor<Workout>()).isEmpty ?? true) != nil) {
@@ -34,6 +34,4 @@ struct ContentView: View {
             }
         }
     }
-
-    // Old list manipulation is removed in favour of dedicated views.
 }

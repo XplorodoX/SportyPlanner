@@ -1,3 +1,10 @@
+//
+//  CardioListView.swift
+//  SportyPlanner
+//
+//  Created by Florian Merlau on 14.06.25.
+//
+
 import SwiftUI
 import SwiftData
 
@@ -10,12 +17,18 @@ struct CardioListView: View {
         NavigationStack {
             List {
                 ForEach(sessions) { session in
-                    VStack(alignment: .leading) {
-                        Text("\(session.type.rawValue.capitalized) am \(session.date, format: .dateTime.day().month())")
-                            .font(.headline)
-                        Text("Dauer: \(formattedDuration(session.duration))")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                    HStack {
+                        Image(systemName: session.type == .running ? "figure.run" : "bicycle")
+                            .font(.title2)
+                            .foregroundColor(.accentColor)
+                        
+                        VStack(alignment: .leading) {
+                            Text("\(session.type.rawValue.capitalized) am \(session.date, format: .dateTime.day().month())")
+                                .font(.headline)
+                            Text("Dauer: \(formattedDuration(session.duration))")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
                 .onDelete(perform: deleteSessions)
