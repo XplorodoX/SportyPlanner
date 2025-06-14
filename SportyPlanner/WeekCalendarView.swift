@@ -1,10 +1,3 @@
-//
-//  WeekCalendarView.swift
-//  SportyPlanner
-//
-//  Created by Florian Merlau on 14.06.25.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -14,106 +7,139 @@ struct WeekCalendarView: View {
     
     @State private var selectedDate: Date = Date()
     @State private var weekOffset: Int = 0
+    @State private var showingAddSheet = false
+    @State private var activityTypeToAdd: ActivityType?
 
+    enum ActivityType { case workout, cardio }
+    
     private var currentWeek: [Date] {
-        let calendar = Calendar(identifier: .iso8601)
-        guard let referenceDate = calendar.date(byAdding: .weekOfYear, value: weekOffset, to: Date()) else { return [] }
-        return calendar.datesOfWeek(containing: referenceDate)
+        guard let referenceDate = Calendar.current.date(byAdding: .weekOfYear, value: weekOffset, to: Date()) else { return [] }
+        return Calendar.current.datesOfWeek(containing: referenceDate)
     }
 
     var body: some View {
-        VStack {
-            // Wochen-Navigation
-            HStack {
-                Button(action: { weekOffset -= 1 }) {
-                    Image(systemName: "chevron.left")
-                }
-                Spacer()
-                Text(currentWeek.first?.formatted(.dateTime.month().year()) ?? "")
-                    .font(.headline)
-                Spacer()
-                Button(action: { weekOffset += 1 }) {
-                    Image(systemName: "chevron.right")
-                }
-            }
-            .padding(.horizontal)
-
-            // Kalendertage
-            HStack(spacing: 4) {
-                ForEach(currentWeek, id: \.self) { date in
-                    VStack {
-                        Text(date, format: .dateTime.weekday(.narrow))
-                            .font(.caption)
-                        Text(date, format: .dateTime.day())
-                            .fontWeight(Calendar.current.isDate(date, inSameDayAs: selectedDate) ? .bold : .regular)
-                            .padding(8)
-                            .background(
-                                ZStack {
-                                    if Calendar.current.isDate(date, inSameDayAs: selectedDate) {
-                                        Circle().fill(Color.accentColor.opacity(0.3))
-                                    }
-                                    if hasActivity(for: date) {
-                                        Circle().stroke(Color.cyan, lineWidth: 2)
-                                    }
-                                }
-                            )
+        NavigationStack {
+            VStack {
+                // Wochen-Navigation
+                HStack {
+                    Button(action: { withAnimation { weekOffset -= 1 } }) {
+                        Image(systemName: "chevron.left.circle.fill")
                     }
-                    .frame(maxWidth: .infinity)
-                    .onTapGesture { selectedDate = date }
+                    Spacer()
+                    Text(weekHeader)
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Button(action: { withAnimation { weekOffset += 1 } }) {
+                        Image(systemName: "chevron.right.circle.fill")
+                    }
                 }
-            }
-            .padding(.horizontal)
+                .padding()
+                .font(.title2)
 
-            // Aktivitäten für den ausgewählten Tag
-            List {
-                Section("Aktivitäten am \(selectedDate, format: .dateTime.day().month())") {
-                    let dailyWorkouts = workouts.filter { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }
-                    let dailyCardio = cardioSessions.filter { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }
+                // Kalendertage
+                HStack(spacing: 4) {
+                    ForEach(currentWeek, id: \.self) { date in
+                        dayCell(for: date)
+                    }
+                }
+                .padding(.horizontal)
 
-                    if dailyWorkouts.isEmpty && dailyCardio.isEmpty {
-                        Text("Keine Aktivitäten für diesen Tag geplant.")
-                            .foregroundColor(.secondary)
-                    } else {
-                        ForEach(dailyWorkouts) { workout in
-                            HStack {
-                                Image(systemName: "dumbbell.fill")
-                                    .foregroundColor(.cyan)
-                                Text("Workout: \(workout.name)")
+                // Aktivitätenliste
+                List {
+                    Section("Aktivitäten am \(selectedDate, format: .dateTime.day().month(.wide))") {
+                        let dailyWorkouts = workouts.filter { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }
+                        let dailyCardio = cardioSessions.filter { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }
+
+                        if dailyWorkouts.isEmpty && dailyCardio.isEmpty {
+                            ContentUnavailableView("Keine Pläne", systemImage: "calendar.badge.exclamationmark")
+                        } else {
+                            ForEach(dailyWorkouts) { workout in
+                                Label("Workout: \(workout.name)", systemImage: "dumbbell.fill")
                             }
-                        }
-                        ForEach(dailyCardio) { session in
-                            HStack {
-                                Image(systemName: session.type == .running ? "figure.run" : "bicycle")
-                                    .foregroundColor(.cyan)
-                                Text("Cardio: \(session.type.rawValue.capitalized)")
+                            ForEach(dailyCardio) { session in
+                                Label("Cardio: \(session.type.rawValue.capitalized)", systemImage: "figure.run")
                             }
                         }
                     }
+                }
+                .listStyle(.insetGrouped)
+            }
+            .navigationTitle("Wochenplan")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button("Neues Workout", systemImage: "dumbbell.fill") {
+                            activityTypeToAdd = .workout
+                            showingAddSheet = true
+                        }
+                        Button("Neue Cardio-Einheit", systemImage: "figure.run") {
+                            activityTypeToAdd = .cardio
+                            showingAddSheet = true
+                        }
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                    }
+                }
+            }
+            .sheet(isPresented: $showingAddSheet) {
+                if activityTypeToAdd == .workout {
+                    AddWorkoutView()
+                } else if activityTypeToAdd == .cardio {
+                    AddCardioView()
                 }
             }
         }
-        .navigationTitle("Wochenplan")
+    }
+    
+    private var weekHeader: String {
+        let firstDay = currentWeek.first ?? Date()
+        let lastDay = currentWeek.last ?? Date()
+        return "\(firstDay.formatted(.dateTime.month().day())) - \(lastDay.formatted(.dateTime.month().day()))"
+    }
+
+    @ViewBuilder
+    private func dayCell(for date: Date) -> some View {
+        let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
+        VStack {
+            Text(date, format: .dateTime.weekday(.short))
+                .font(.caption)
+                .foregroundColor(isSelected ? .white : .secondary)
+            Text(date, format: .dateTime.day())
+                .fontWeight(isSelected ? .bold : .regular)
+                .foregroundStyle(isSelected ? .white : .primary)
+                .frame(width: 35, height: 35)
+                .background(
+                    ZStack {
+                        if isSelected {
+                            Circle().fill(Color.accentColor)
+                        } else if hasActivity(for: date) {
+                            Circle().stroke(Color.accentColor.opacity(0.5), lineWidth: 2)
+                        }
+                    }
+                )
+        }
+        .frame(maxWidth: .infinity)
+        .onTapGesture {
+            withAnimation(.spring) {
+                selectedDate = date
+            }
+        }
     }
 
     private func hasActivity(for date: Date) -> Bool {
         let calendar = Calendar.current
-        let hasWorkout = workouts.contains { calendar.isDate($0.date, inSameDayAs: date) }
-        let hasCardio = cardioSessions.contains { calendar.isDate($0.date, inSameDayAs: date) }
-        return hasWorkout || hasCardio
+        return workouts.contains { calendar.isDate($0.date, inSameDayAs: date) } ||
+               cardioSessions.contains { calendar.isDate($0.date, inSameDayAs: date) }
     }
 }
 
 extension Calendar {
     func datesOfWeek(containing date: Date) -> [Date] {
-        let calendar = Calendar(identifier: .iso8601)
-        guard let weekInterval = calendar.dateInterval(of: .weekOfYear, for: date) else { return [] }
+        guard let weekInterval = self.dateInterval(of: .weekOfYear, for: date) else { return [] }
         return (0..<7).compactMap { day in
-            calendar.date(byAdding: .day, value: day, to: weekInterval.start)
+            self.date(byAdding: .day, value: day, to: weekInterval.start)
         }
     }
-}
-
-#Preview {
-    WeekCalendarView()
-        .modelContainer(for: [Workout.self, CardioSession.self], inMemory: true)
 }

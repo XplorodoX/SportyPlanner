@@ -3,7 +3,6 @@ import SwiftData
 
 @main
 struct SportyPlannerApp: App {
-    // State, um den Zustand des Splash Screens zu steuern
     @State private var showingSplash = true
 
     var sharedModelContainer: ModelContainer = {
@@ -27,8 +26,7 @@ struct SportyPlannerApp: App {
             if showingSplash {
                 SplashScreenView()
                     .onAppear {
-                        // Nach 2.5 Sekunden zur Hauptansicht wechseln
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                             withAnimation {
                                 showingSplash = false
                             }
@@ -36,8 +34,17 @@ struct SportyPlannerApp: App {
                     }
             } else {
                 ContentView()
+                    .onAppear(perform: requestHealthKitAccess)
             }
         }
         .modelContainer(sharedModelContainer)
+    }
+    
+    private func requestHealthKitAccess() {
+        HealthKitManager.shared.requestAuthorization { success, error in
+            if !success {
+                print("HealthKit-Zugriff wurde verweigert oder ist fehlgeschlagen.")
+            }
+        }
     }
 }

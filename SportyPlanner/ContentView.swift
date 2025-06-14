@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  SportyPlanner
-//
-//  Created by Florian Merlau on 14.06.25.
-//
-
 import SwiftUI
 import SwiftData
 import MapKit
@@ -15,10 +8,8 @@ struct ContentView: View {
 
     var body: some View {
         TabView {
-            NavigationStack {
-                WeekCalendarView()
-            }
-            .tabItem { Label("Woche", systemImage: "calendar") }
+            WeekCalendarView()
+                .tabItem { Label("Woche", systemImage: "calendar") }
 
             WorkoutListView()
                 .tabItem { Label("Workouts", systemImage: "dumbbell.fill") }
@@ -26,12 +17,22 @@ struct ContentView: View {
             CardioListView()
                 .tabItem { Label("Cardio", systemImage: "figure.run") }
         }
-        .onAppear {
-            if ((try? modelContext.fetch(FetchDescriptor<Workout>()).isEmpty ?? true) != nil) {
-                for workout in planner.generatePlan() {
-                    modelContext.insert(workout)
-                }
+        .onAppear(perform: setupInitialData)
+    }
+    
+    private func setupInitialData() {
+        // Prüfen, ob bereits Daten vorhanden sind, um Duplikate zu vermeiden
+        let descriptor = FetchDescriptor<Workout>()
+        let count = (try? modelContext.fetchCount(descriptor)) ?? 0
+        
+        if count == 0 {
+            // Generierte Workouts einfügen
+            for workout in planner.generatePlan() {
+                modelContext.insert(workout)
             }
+            // Beispiel-Cardio-Einheit mit Route einfügen
+            let runningSession = planner.generateSampleCardio()
+            modelContext.insert(runningSession)
         }
     }
 }

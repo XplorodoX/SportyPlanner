@@ -1,10 +1,3 @@
-//
-//  AddCardioView.swift
-//  SportyPlanner
-//
-//  Created by Florian Merlau on 14.06.25.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -33,10 +26,8 @@ struct AddCardioView: View {
                 DatePicker("Datum", selection: $date, displayedComponents: .date)
                 
                 Section("Dauer") {
-                    HStack {
-                        Stepper("\(durationHours) Stunden", value: $durationHours, in: 0...23)
-                        Stepper("\(durationMinutes) Minuten", value: $durationMinutes, in: 0...59, step: 5)
-                    }
+                    Stepper("\(durationHours) Stunden", value: $durationHours, in: 0...23)
+                    Stepper("\(durationMinutes) Minuten", value: $durationMinutes, in: 0...59, step: 5)
                 }
             }
             .navigationTitle("Neue Kardio-Einheit")
@@ -57,5 +48,7 @@ struct AddCardioView: View {
     private func saveSession() {
         let newSession = CardioSession(type: type, date: date, duration: duration)
         modelContext.insert(newSession)
+        // In HealthKit speichern
+        HealthKitManager.shared.saveCardioSession(newSession)
     }
 }

@@ -3,22 +3,20 @@ import SwiftUI
 struct SplashScreenView: View {
     var body: some View {
         ZStack {
-            // Hintergrundfarbe, passend zum App-Theme
-            Color(.systemBackground)
+            Color.accentColor.opacity(0.1)
                 .edgesIgnoringSafeArea(.all)
             
             VStack {
-                // Das Logo aus den Assets laden
-                Image("SplashLogo")
+                Image(systemName: "figure.run.circle.fill")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 150, height: 150)
-                    .padding()
+                    .frame(width: 120, height: 120)
+                    .foregroundColor(.accentColor)
                 
                 Text("SportyPlanner")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(.primary)
             }
         }
     }

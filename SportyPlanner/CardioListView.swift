@@ -1,10 +1,3 @@
-//
-//  CardioListView.swift
-//  SportyPlanner
-//
-//  Created by Florian Merlau on 14.06.25.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -17,22 +10,33 @@ struct CardioListView: View {
         NavigationStack {
             List {
                 ForEach(sessions) { session in
-                    HStack {
-                        Image(systemName: session.type == .running ? "figure.run" : "bicycle")
-                            .font(.title2)
-                            .foregroundColor(.accentColor)
-                        
-                        VStack(alignment: .leading) {
-                            Text("\(session.type.rawValue.capitalized) am \(session.date, format: .dateTime.day().month())")
-                                .font(.headline)
-                            Text("Dauer: \(formattedDuration(session.duration))")
+                    NavigationLink(destination: CardioDetailView(session: session)) {
+                        HStack(spacing: 15) {
+                            Image(systemName: session.type == .running ? "figure.run" : "bicycle")
+                                .font(.title)
+                                .foregroundColor(.white)
+                                .frame(width: 50, height: 50)
+                                .background(Color.accentColor.gradient)
+                                .clipShape(Circle())
+                            
+                            VStack(alignment: .leading) {
+                                Text("\(session.type.rawValue.capitalized)")
+                                    .font(.headline)
+                                Text(session.date, format: .dateTime.day().month().year())
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Text(formattedDuration(session.duration))
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .fontWeight(.medium)
                         }
+                        .padding(.vertical, 8)
                     }
                 }
                 .onDelete(perform: deleteSessions)
             }
+            .listStyle(.plain)
             .navigationTitle("Cardio")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
