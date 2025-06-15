@@ -34,7 +34,7 @@ final class CardioSession {
     var duration: TimeInterval
     var locations: [TrackPoint]
 
-    init(type: ActivityType, date: Date, duration: TimeInterval, locations: [TrackPoint] = []) {
+    init(type: ActivityType, date: Date, duration: TimeInterval, locations: [TrackPoint]) {
         self.type = type
         self.date = date
         self.duration = duration

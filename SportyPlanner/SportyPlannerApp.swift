@@ -37,7 +37,6 @@ struct SportyPlannerApp: App {
                     .onAppear(perform: requestHealthKitAccess)
             }
         }
-        .tint(.accentColor)
         .modelContainer(sharedModelContainer)
     }
     

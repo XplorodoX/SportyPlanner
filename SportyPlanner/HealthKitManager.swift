@@ -109,7 +109,8 @@ class HealthKitManager {
             let newSession = CardioSession(
                 type: activityType,
                 date: hkWorkout.startDate,
-                duration: hkWorkout.duration
+                duration: hkWorkout.duration,
+                locations: [] // HealthKit does not provide location data here
             )
             modelContext.insert(newSession)
 

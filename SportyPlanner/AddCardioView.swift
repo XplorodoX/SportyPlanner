@@ -48,11 +48,10 @@ struct AddCardioView: View {
     }
 
     private func saveSession() {
-        let newSession = CardioSession(type: type, date: date, duration: duration)
+        let newSession = CardioSession(type: type, date: date, duration: duration, locations: [])
         modelContext.insert(newSession)
         // In HealthKit speichern
         HealthKitManager.shared.saveCardioSession(newSession)
     }
 }
-
 

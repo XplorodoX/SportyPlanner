@@ -5,7 +5,7 @@ import SwiftData
 final class Workout {
     var name: String
     var date: Date
-    var exercises: [Exercise]
+    @Relationship var exercises: [Exercise]
 
     init(name: String, date: Date, exercises: [Exercise] = []) {
         self.name = name
