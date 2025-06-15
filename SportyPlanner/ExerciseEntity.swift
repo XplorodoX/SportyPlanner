@@ -1,36 +1,28 @@
 import AppIntents
 import Foundation
 
-/// Struct representing a single exercise that can be used with Shortcuts.
-/// The properties are simple stored values so the type remains `Sendable`.
-struct ExerciseEntity: AppEntity, Identifiable, Hashable, Sendable, Codable {
-    /// Unique identifier used by Shortcuts.
+struct ExerciseEntity: AppEntity, AppValue, Identifiable, Hashable, Codable {
     let id: UUID
-
-    /// Name of the exercise.
     var name: String
-
-    /// Number of sets.
     var sets: Int
-
-    /// Number of repetitions.
     var reps: Int
 
-    /// How the type itself is shown in the Shortcuts UI.
-    static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Exercise")
-
-    /// Representation for a concrete value when shown in Shortcuts.
+    static var typeDisplayRepresentation: TypeDisplayRepresentation {
+        TypeDisplayRepresentation(name: "Exercise")
+    }
+    static var typeDisplayName: LocalizedStringResource {
+        "Exercise"
+    }
+    static var defaultQuery: ExerciseQuery {
+        ExerciseQuery()
+    }
     var displayRepresentation: DisplayRepresentation {
         DisplayRepresentation(
             title: LocalizedStringResource(stringLiteral: name),
             subtitle: LocalizedStringResource(stringLiteral: "\(sets) sets x \(reps) reps")
         )
     }
-
-    /// Default query used by the Shortcuts app.
-    static var defaultQuery = ExerciseQuery()
-    static var typeDisplayName: LocalizedStringResource = "Exercise"
-
+    
     init(id: UUID = UUID(), name: String, sets: Int, reps: Int) {
         self.id = id
         self.name = name
@@ -39,16 +31,12 @@ struct ExerciseEntity: AppEntity, Identifiable, Hashable, Sendable, Codable {
     }
 }
 
-// Kueri tetap sama.
 struct ExerciseQuery: EntityQuery {
     func entities(for identifiers: [UUID]) async throws -> [ExerciseEntity] {
-        // Karena latihan tidak disimpan secara independen, kita tidak mengambilnya.
-        // Ini terutama untuk pembuatan.
         return []
     }
 
     func suggestedEntities() async throws -> [ExerciseEntity] {
-        // Anda dapat menyarankan latihan umum di sini
         return [
             ExerciseEntity(name: "Bench Press", sets: 3, reps: 10),
             ExerciseEntity(name: "Squats", sets: 4, reps: 8),
@@ -56,6 +44,3 @@ struct ExerciseQuery: EntityQuery {
         ]
     }
 }
-
-// `ExerciseEntity` is used as an intent parameter, so no additional
-// conformance beyond `AppEntity` is required.
