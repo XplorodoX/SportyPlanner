@@ -70,6 +70,8 @@ struct AddWorkoutView: View {
                 // --- ENDE DER ÄNDERUNGEN ---
             }
             .navigationTitle("Neues Workout")
+            .formStyle(.grouped)
+            .scrollContentBackground(.hidden)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Abbrechen") { dismiss() }

@@ -16,10 +16,13 @@ struct ContentView: View {
 
             CardioListView()
                 .tabItem { Label("Cardio", systemImage: "figure.run") }
-            
+
             SettingsView()
                 .tabItem { Label("Einstellungen", systemImage: "gear") }
         }
+        .tint(.accentColor)
+        .toolbarBackground(.visible, for: .tabBar)
+        .toolbarBackground(Color.accentColor.opacity(0.15), for: .tabBar)
         .onAppear(perform: setupInitialData)
     }
     
