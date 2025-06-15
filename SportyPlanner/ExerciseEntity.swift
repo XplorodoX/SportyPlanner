@@ -1,30 +1,32 @@
 import AppIntents
 import Foundation
 
-// Struk yang mewakili satu latihan dalam suatu maksud.
-// DIUBAH: Ditambahkan 'Sendable' untuk memastikan keamanan thread dengan App Intents.
-struct ExerciseEntity: AppEntity, Identifiable, Sendable {
+/// Struct representing a single exercise that can be used with Shortcuts.
+/// The properties are simple stored values so the type remains `Sendable`.
+struct ExerciseEntity: AppEntity, Identifiable, Hashable, Sendable {
+    /// Unique identifier used by Shortcuts.
     let id: UUID
-    
-    @Property(title: "Name")
+
+    /// Name of the exercise.
     var name: String
-    
-    @Property(title: "Sets")
+
+    /// Number of sets.
     var sets: Int
-    
-    @Property(title: "Reps")
+
+    /// Number of repetitions.
     var reps: Int
-    
-    // Bagaimana entitas akan ditampilkan dalam UI Pintasan
-    // DIUBAH: Dihapus 'nonisolated(unsafe)' untuk konkurensi yang lebih bersih.
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Exercise"
+
+    /// How the type itself is shown in the Shortcuts UI.
+    nonisolated(unsafe) static var typeDisplayRepresentation: TypeDisplayRepresentation = "Exercise"
+
+    /// Representation for a concrete value when shown in Shortcuts.
     var displayRepresentation: DisplayRepresentation {
-        DisplayRepresentation(title: "\(name)", subtitle: "\(sets) sets x \(reps) reps")
+        DisplayRepresentation(title: name, subtitle: "\(sets) sets x \(reps) reps")
     }
 
-    // Memberi tahu Pintasan cara mengidentifikasi entitas ini secara unik
-    static var defaultQuery = ExerciseQuery()
-    static var typeDisplayName: LocalizedStringResource = "Exercise"
+    /// Default query used by the Shortcuts app.
+    nonisolated(unsafe) static var defaultQuery = ExerciseQuery()
+    nonisolated(unsafe) static var typeDisplayName: LocalizedStringResource = "Exercise"
 
     init(id: UUID = UUID(), name: String, sets: Int, reps: Int) {
         self.id = id
@@ -52,6 +54,5 @@ struct ExerciseQuery: EntityQuery {
     }
 }
 
-// Konformasi AppValue sudah menyiratkan kebutuhan akan Sendable,
-// jadi ini berfungsi dengan sempurna dengan perbaikan kami.
-extension ExerciseEntity: AppValue {}
+// `ExerciseEntity` is used as an intent parameter, so no additional
+// conformance beyond `AppEntity` is required.
