@@ -5,29 +5,6 @@ import SwiftData
 struct SportyPlannerApp: App {
     @State private var showingSplash = true
 
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Workout.self,
-            Exercise.self,
-            CardioSession.self,
-        ])
-
-        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [configuration])
-        } catch {
-            // If the persistent store cannot be loaded (e.g. after a model change),
-            // fall back to an in-memory container so the app can still run.
-            print("ModelContainer could not be loaded: \(error). Using in-memory store as fallback.")
-            let memoryConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-            do {
-                return try ModelContainer(for: schema, configurations: [memoryConfig])
-            } catch {
-                fatalError("Could not create in-memory ModelContainer: \(error)")
-            }
-        }
-    }()
 
     var body: some Scene {
         WindowGroup {
@@ -45,7 +22,7 @@ struct SportyPlannerApp: App {
                     .onAppear(perform: requestHealthKitAccess)
             }
         }
-        .modelContainer(sharedModelContainer)
+        .modelContainer(PersistenceController.shared.container)
     }
     
     private func requestHealthKitAccess() {
