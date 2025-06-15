@@ -31,6 +31,8 @@ struct AddCardioView: View {
                 }
             }
             .navigationTitle("Neue Kardio-Einheit")
+            .formStyle(.grouped)
+            .scrollContentBackground(.hidden)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Abbrechen") { dismiss() }

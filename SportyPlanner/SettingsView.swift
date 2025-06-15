@@ -55,6 +55,8 @@ struct SettingsView: View {
                 // --- ENDE DER ÄNDERUNGEN ---
             }
             .navigationTitle("Einstellungen")
+            .formStyle(.grouped)
+            .scrollContentBackground(.hidden)
             .alert(isPresented: $showingAlert) {
                 Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .default(Text("OK")))
             }
