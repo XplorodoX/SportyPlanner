@@ -11,13 +11,21 @@ struct SportyPlannerApp: App {
             Exercise.self,
             CardioSession.self,
         ])
-        
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            return try ModelContainer(for: schema, configurations: [configuration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            // If the persistent store cannot be loaded (e.g. after a model change),
+            // fall back to an in-memory container so the app can still run.
+            print("ModelContainer could not be loaded: \(error). Using in-memory store as fallback.")
+            let memoryConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            do {
+                return try ModelContainer(for: schema, configurations: [memoryConfig])
+            } catch {
+                fatalError("Could not create in-memory ModelContainer: \(error)")
+            }
         }
     }()
 
